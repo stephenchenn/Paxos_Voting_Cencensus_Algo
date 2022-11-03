@@ -3,25 +3,23 @@ public class Messenger{
     protected SocketServer server;
     protected SocketClient client;
 
-    // public Messenger () {
-    //     // default constructor
-    // }
+    public Messenger () {
+        // default constructor
+    }
 
-    // public Messenger (SocketServer server) {
-    //     this.server = server;
-    // }
+    public Messenger (SocketServer server) {
+        this.server = server;
+    }
 
-    // public Messenger (SocketClient client) {
-    //     this.client = client;
-    // }
+    public Messenger (SocketClient client) {
+        this.client = client;
+    }
 
     public void startListening(Acceptor acceptor, int port){
-        this.server = new SocketServer(acceptor, port);
         server.startServer();
     }
 
     public void sendPrepare(Proposer proposer, ProposalID proposalID, String ip, int port){
-        this.client = new SocketClient(proposer);
         client.startClient(proposalID, ip, port);
         // System.out.println("messenger: sending prepare: seq: " + proposalID.getNumber() + " uid: " + proposalID.getUID());
     }

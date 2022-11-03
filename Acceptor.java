@@ -6,9 +6,12 @@ public class Acceptor {
 	protected ProposalID acceptedID = null;
 	protected int acceptedValue = -1;
 
-	public Acceptor(Messenger messenger, String acceptorUID) {
-		this.messenger = messenger;
+	public Acceptor(String acceptorUID) {
 		this.acceptorUID = acceptorUID;
+	}
+
+	public void setMessenger (Messenger messenger){
+		this.messenger = messenger;
 	}
 
 	public void start (int port){

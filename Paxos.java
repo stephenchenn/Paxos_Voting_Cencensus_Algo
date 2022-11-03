@@ -4,18 +4,24 @@ public class Paxos {
     public static void main(String[] args) {
 
         // proposer
-        Messenger proposerMessenger = new Messenger();
         String proposerUID = "12";
         int quorumSize = 2; // change to 5
-        Proposer proposer = new Proposer(proposerMessenger, proposerUID, quorumSize);
+        Proposer proposer = new Proposer(proposerUID, quorumSize);
+        SocketClient client = new SocketClient(proposer);
+        Messenger proposerMessenger = new Messenger(client);
+        proposer.setMessenger(proposerMessenger);
 
         // String uid = proposer.getProposerUID();
         // ProposalID id = proposer.getProposalID();
 
         // acceptor 1
-        Messenger acceptorMessenger1 = new Messenger();
         int port = 80;
-        Acceptor acceptor = new Acceptor(acceptorMessenger1, "30");
+        Acceptor acceptor = new Acceptor("30");
+        SocketServer server = new SocketServer(acceptor, port);
+
+        Messenger acceptorMessenger1 = new Messenger(server);
+        acceptor.setMessenger(acceptorMessenger1);
+
         acceptor.start(port);
         
         // acceptor1.getMessenger().startListening(acceptor1, port);

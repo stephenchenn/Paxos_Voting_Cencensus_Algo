@@ -11,11 +11,15 @@ public class Proposer {
 	protected ProposalID lastAcceptedID = null;
 	protected HashSet<String> promisesReceived = new HashSet<String>(); // using HeshSet here to ensure a unique value list
 
-	public Proposer(Messenger messenger, String proposerUID, int quorumSize) {
-		this.messenger = messenger; 
+	public Proposer(String proposerUID, int quorumSize) {
+		
 		this.proposerUID = proposerUID; 
 		this.quorumSize = quorumSize; 
 		this.proposalID = new ProposalID(0, proposerUID); // proposal id is a combo of a locally incrementing identifier and the proposer UID
+	}
+
+	public void setMessenger(Messenger messenger){
+		this.messenger = messenger; 
 	}
 
 	public void setProposal(int value) {
