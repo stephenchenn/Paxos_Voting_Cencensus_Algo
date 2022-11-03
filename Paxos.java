@@ -4,32 +4,47 @@ public class Paxos {
     public static void main(String[] args) {
 
         // proposer
-        String proposerUID = "12";
+        String proposerUID = "100";
         int quorumSize = 2; // change to 5
         Proposer proposer = new Proposer(proposerUID, quorumSize);
         SocketClient client = new SocketClient(proposer);
         Messenger proposerMessenger = new Messenger(client);
         proposer.setMessenger(proposerMessenger);
+        proposer.setProposal(7);
 
         // String uid = proposer.getProposerUID();
         // ProposalID id = proposer.getProposalID();
 
         // acceptor 1
         int port = 80;
-        Acceptor acceptor = new Acceptor("30");
+        Acceptor acceptor = new Acceptor("200");
         SocketServer server = new SocketServer(acceptor, port);
 
         Messenger acceptorMessenger1 = new Messenger(server);
         acceptor.setMessenger(acceptorMessenger1);
 
         acceptor.start(port);
+
+        // acceptor 2
+        int port2 = 81;
+        Acceptor acceptor2 = new Acceptor("201");
+        SocketServer server2 = new SocketServer(acceptor2, port2);
+
+        Messenger acceptorMessenger2 = new Messenger(server2);
+        acceptor2.setMessenger(acceptorMessenger2);
+
+        acceptor2.start(port);
         
         // acceptor1.getMessenger().startListening(acceptor1, port);
 
         // System.out.println("proposer: prepare");
-        String ip = "127.0.0.1";
+        String ip1 = "127.0.0.1";
+        String ip2 = "127.0.0.1";
+        
+        String[] ips = {ip1, ip2};
+        int[] ports = {port, port2};
         // make SocketClient a thread
-        proposer.prepare(ip, port);
+        proposer.prepare(ips, ports);
         // sending prepare
         
         // System.out.println("acceptor1: receive prepare");
