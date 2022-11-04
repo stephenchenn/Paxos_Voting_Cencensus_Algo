@@ -37,13 +37,18 @@ public class Acceptor {
 	}
 
 	// acceptor’s accept(n, v) handler:
-	public void receiveAcceptRequest(String fromUID, ProposalID proposalID, int value) { // if n >= n_p
+	public AcceptRequest receiveAcceptRequest(String fromUID, ProposalID proposalID, int value) { // if n >= n_p
 		if (promisedID == null || proposalID.isGreaterThan(promisedID) || proposalID.equals(promisedID)) {
 			promisedID = proposalID; // n_p = n
 			acceptedID = proposalID; // n_a = n
 			acceptedValue = value; // v_a = v
 
-			messenger.sendAccepted(acceptedID, acceptedValue); // reply accept_ok(n)
+			AcceptRequest accepted = new AcceptRequest(acceptedID, acceptedValue);
+			return accepted; // reply accept_ok(n)
+
+			// messenger.sendAccepted(acceptedID, acceptedValue); 
+		} else {
+			return null;
 		}
 	}
 

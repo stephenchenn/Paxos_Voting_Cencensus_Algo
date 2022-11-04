@@ -78,39 +78,10 @@ public class SocketClient {
             System.out.println(p_prevAcceptedID);
             System.out.println(p_acceptedValue);
 
-            // maybe proposer should inform instead of busy wait? think tmr
-
-            // every 5 seconds check with acceptor to see if majority is reached
-            // if (accReq == null) {
-            // boolean promiseFromMajority = false;
-            // while (!promiseFromMajority) {
-            // System.out.println("not rdy");
-            // TimeUnit.SECONDS.sleep(5);
-            // accReq = proposer.checkPromiseCount();
-            // if (accReq != null) {
-            // promiseFromMajority = true;
-            // }
-            // }
-            // }
+            AcceptRequest accReq;
 
             synchronized (this) {
-                AcceptRequest accReq = proposer.receivePromise(p_acceptorUID, p_proposalID, p_prevAcceptedID,
-                        p_acceptedValue);
-                // count ++;
-
-                // if (count == 2){
-                // // notifies the produce thread that it
-                // // can wake up.
-                // System.out.println("notifying, count: " + count);
-                // notifyAll();
-                // System.out.println("i go first!");
-                // }else{
-                // // releases the lock on shared resource
-                // System.out.println("waiting, count: " + count);
-                // wait();
-                // System.out.println("back here");
-                // Thread.sleep(5000);
-                // }
+                accReq = proposer.receivePromise(p_acceptorUID, p_proposalID, p_prevAcceptedID, p_acceptedValue);
                 if (accReq != null) {
                     // notifies the produce thread that it can wake up.
                     System.out.println("notifying");
@@ -121,10 +92,15 @@ public class SocketClient {
 
                     System.out.println("waiting");
                     wait();
+                    accReq = new AcceptRequest(proposer.getProposalID(), proposer.getProposedValue());
 
                     System.out.println("back!");
                 }
             }
+
+            out.println(accReq.proposalID.getNumber());
+            out.println(accReq.proposalID.getUID());
+            out.println(accReq.proposedValue);
 
             // Close our streams
             in.close();

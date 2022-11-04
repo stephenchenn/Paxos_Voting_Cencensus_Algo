@@ -12,9 +12,15 @@ public class Paxos {
         proposer.setMessenger(proposerMessenger);
         proposer.setProposal(7);
 
+        // learner
+        // Learner learner = Learner(quorumSize);
+        // SocketServer server = new SocketServer(acceptor, port);
+        // Messenger messenger = new Messenger(server);
+        // learner.setMessenger(messenger);
+
         // String uid = proposer.getProposerUID();
         // ProposalID id = proposer.getProposalID();
-
+ 
         // acceptor 1
         int port = 80;
         Acceptor acceptor = new Acceptor("200");

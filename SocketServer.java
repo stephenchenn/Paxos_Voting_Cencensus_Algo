@@ -73,8 +73,12 @@ class RequestHandler extends Thread {
             String uid = in.readLine();
 
             ProposalID proposalID = new ProposalID(id, uid);
-            Promise promise = this.acceptor.receivePrepare(uid, proposalID);
+            Promise promise;
 
+            synchronized(this){
+                promise = this.acceptor.receivePrepare(uid, proposalID);
+            }
+            
             if (promise != null) {
                 String p_acceptorUID = promise.acceptorUID;
                 String p_proposal_number = String.valueOf(promise.proposalID.getNumber());
@@ -96,6 +100,24 @@ class RequestHandler extends Thread {
                 out.flush();
             } else {
                 // NACK
+            }
+
+            int a_proposal_number = Integer.parseInt(in.readLine());
+            String a_proposal_uid = in.readLine();
+            ProposalID a_proposalID = new ProposalID(a_proposal_number, a_proposal_uid);
+            int a_value = Integer.parseInt(in.readLine());
+            
+            AcceptRequest accepted;
+            synchronized(this){
+                accepted = acceptor.receiveAcceptRequest(a_proposal_uid, a_proposalID, a_value);
+            }
+
+            if (accepted!=null){
+                System.out.println(accepted.proposalID.getNumber());
+                System.out.println(accepted.proposalID.getUID());
+                System.out.println(accepted.proposedValue);
+            } else {
+                System.out.println("not accepted");
             }
 
             // Close our connection
