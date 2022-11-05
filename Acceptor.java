@@ -14,8 +14,8 @@ public class Acceptor {
 		this.messenger = messenger;
 	}
 
-	public void start (int port){
-		this.messenger.startListening(this, port);
+	public void start (){
+		this.messenger.startListening();
 	}
 
 	// acceptor’s prepare(n) handler:

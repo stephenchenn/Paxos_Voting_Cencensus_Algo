@@ -15,7 +15,7 @@ public class Messenger{
         this.client = client;
     }
 
-    public void startListening(Acceptor acceptor, int port){
+    public void startListening(){
         server.startServer();
     }
 

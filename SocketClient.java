@@ -26,6 +26,10 @@ public class SocketClient {
         }
     }
 
+    public SocketClient() {
+        // default constructor
+    }
+
     public SocketClient(Proposer proposer) {
         this.proposer = proposer;
     }
@@ -52,9 +56,11 @@ public class SocketClient {
             String number = String.valueOf(proposalID.getNumber());
             String uid = proposalID.getUID();
 
+            // send prepare
             out.println(number);
             out.println(uid);
 
+            // receive promise
             String p_acceptorUID = in.readLine();
             int p_proposal_number = Integer.parseInt(in.readLine());
             String p_proposal_uid = in.readLine();
@@ -98,6 +104,7 @@ public class SocketClient {
                 }
             }
 
+            // send accept request
             out.println(accReq.proposalID.getNumber());
             out.println(accReq.proposalID.getUID());
             out.println(accReq.proposedValue);

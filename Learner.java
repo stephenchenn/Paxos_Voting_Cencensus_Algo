@@ -14,32 +14,41 @@ public class Learner{
 		}
 	}
 
-	private final Messenger messenger;
+	private Messenger messenger;
 	private final int quorumSize;
 	private HashMap<ProposalID, Proposal> proposals = new HashMap<ProposalID, Proposal>();
 	private HashMap<String, ProposalID> acceptors = new HashMap<String, ProposalID>();
 	private int finalValue = -1;
 	private ProposalID finalProposalID = null;
 
-	public Learner(Messenger messenger, int quorumSize) {
-		this.messenger = messenger;
+	public Learner(int quorumSize) {
 		this.quorumSize = quorumSize;
+	}
+	
+	public void setMessenger (Messenger messenger) {
+		this.messenger = messenger;
+	}
+
+	public void start (){
+		this.messenger.startListening();
 	}
 
 	public boolean isComplete() {
 		return finalValue != -1;
 	}
 
-	public void receiveAccepted(String fromUID, ProposalID proposalID, int acceptedValue) {
-
-		if (isComplete())
-			return;
+	public AcceptRequest receiveAccepted(String fromUID, ProposalID proposalID, int acceptedValue) {
+		System.out.println("start here");
+		if (isComplete()){
+			return null;
+		}
 
 		// confusing start
 		ProposalID oldPID = acceptors.get(fromUID);
 		// make sure the received proposal is not duplicate or out of date
-		if (oldPID != null && !proposalID.isGreaterThan(oldPID))
-			return;
+		if (oldPID != null && !proposalID.isGreaterThan(oldPID)){
+			return null;
+		}
 
 		acceptors.put(fromUID, proposalID);
 		if (oldPID != null) {
@@ -67,8 +76,15 @@ public class Learner{
 			acceptors.clear();
 
 			// send decided(v’) to all
-			messenger.onResolution(proposalID, acceptedValue);
+			AcceptRequest resolution = new AcceptRequest(proposalID, acceptedValue);
+			return resolution;
+			//messenger.onResolution(proposalID, acceptedValue);
 		}
+
+		System.out.println("exit 3");
+		System.out.println(thisProposal.acceptCount);
+		System.out.println("end here");
+		return null;
 	}
 
 	public int getQuorumSize() {

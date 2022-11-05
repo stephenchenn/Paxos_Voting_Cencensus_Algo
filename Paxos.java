@@ -3,6 +3,8 @@ import java.lang.String;
 public class Paxos {
     public static void main(String[] args) {
 
+        // implemeting proposers as clients, acceptors and learners as servers
+
         // proposer
         String proposerUID = "100";
         int quorumSize = 2; // change to 5
@@ -13,10 +15,15 @@ public class Paxos {
         proposer.setProposal(7);
 
         // learner
-        // Learner learner = Learner(quorumSize);
-        // SocketServer server = new SocketServer(acceptor, port);
-        // Messenger messenger = new Messenger(server);
-        // learner.setMessenger(messenger);
+        int l_port = 5555;
+        String l_ip = "127.0.0.1";
+        Learner learner = new Learner(quorumSize);
+        SocketServer l_server = new SocketServer(learner, l_port);
+        Messenger messenger = new Messenger(l_server);
+        learner.setMessenger(messenger);
+        learner.start();
+
+        // need to pass learner to acceptors
 
         // String uid = proposer.getProposerUID();
         // ProposalID id = proposer.getProposalID();
@@ -24,22 +31,22 @@ public class Paxos {
         // acceptor 1
         int port = 80;
         Acceptor acceptor = new Acceptor("200");
-        SocketServer server = new SocketServer(acceptor, port);
+        SocketServer server = new SocketServer(acceptor, port, l_ip, l_port);
 
         Messenger acceptorMessenger1 = new Messenger(server);
         acceptor.setMessenger(acceptorMessenger1);
 
-        acceptor.start(port);
+        acceptor.start();
 
         // acceptor 2
         int port2 = 81;
         Acceptor acceptor2 = new Acceptor("201");
-        SocketServer server2 = new SocketServer(acceptor2, port2);
+        SocketServer server2 = new SocketServer(acceptor2, port2, l_ip, l_port);
 
         Messenger acceptorMessenger2 = new Messenger(server2);
         acceptor2.setMessenger(acceptorMessenger2);
 
-        acceptor2.start(port);
+        acceptor2.start();
         
         // acceptor1.getMessenger().startListening(acceptor1, port);
 

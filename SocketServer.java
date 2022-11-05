@@ -5,15 +5,34 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import java.io.PrintStream;
+
+// SocketServer can be an acceptor or a learner
+
 public class SocketServer extends Thread {
     private ServerSocket serverSocket;
     private int port;
     private boolean running = false;
     private Acceptor acceptor;
+    private Learner learner = null;
+    private String learner_ip;
+    private int learner_port;
 
-    public SocketServer(Acceptor acceptor, int port) {
+    // constructor for an acceptor
+        // passing in acceptor to contact acceptor obj for paxos logic
+        // passing in port to start the server on
+        // passing in learner ip and port to contact learner server once a value has been accepted
+    public SocketServer(Acceptor acceptor, int port, String learner_ip, int learner_port) {
         this.port = port;
         this.acceptor = acceptor;
+        this.learner_ip = learner_ip;
+        this.learner_port = learner_port;
+    }
+
+    // constructor for a learner
+    public SocketServer(Learner learner, int port) {
+        this.port = port;
+        this.learner = learner;
     }
 
     public void startServer() {
@@ -41,9 +60,17 @@ public class SocketServer extends Thread {
                 // Call accept() to receive the next connection
                 Socket socket = serverSocket.accept();
 
-                // Pass the socket to the RequestHandler thread for processing
-                RequestHandler requestHandler = new RequestHandler(socket, acceptor);
-                requestHandler.start();
+                // if learner is not null, this server is for learner so it will be handled by a LearnerHandler
+                // otherwise it is for an acceptor and will be handled by a AcceptorHandler
+                if (learner != null) {
+                    LearnerHandler learnerHandler = new LearnerHandler(socket, learner);
+                    learnerHandler.start();
+                } else {
+                    // Pass the socket to the RequestHandler thread for processing
+                    AcceptorHandler acceptorHandler = new AcceptorHandler(socket, acceptor, learner_ip, learner_port);
+                    acceptorHandler.start();
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -51,13 +78,17 @@ public class SocketServer extends Thread {
     }
 }
 
-class RequestHandler extends Thread {
+class AcceptorHandler extends Thread {
     private Socket socket;
     private Acceptor acceptor;
+    private String learner_ip;
+    private int learner_port;
 
-    RequestHandler(Socket socket, Acceptor acceptor) {
+    AcceptorHandler(Socket socket, Acceptor acceptor, String learner_ip, int learner_port) {
         this.socket = socket;
         this.acceptor = acceptor;
+        this.learner_ip = learner_ip;
+        this.learner_port = learner_port;
     }
 
     @Override
@@ -99,7 +130,7 @@ class RequestHandler extends Thread {
                 out.println(p_acceptedValue);
                 out.flush();
             } else {
-                // NACK
+                System.out.println("prepare fail");
             }
 
             int a_proposal_number = Integer.parseInt(in.readLine());
@@ -112,12 +143,73 @@ class RequestHandler extends Thread {
                 accepted = acceptor.receiveAcceptRequest(a_proposal_uid, a_proposalID, a_value);
             }
 
+            Socket l_socket;
             if (accepted!=null){
-                System.out.println(accepted.proposalID.getNumber());
-                System.out.println(accepted.proposalID.getUID());
-                System.out.println(accepted.proposedValue);
+                // create a socket to inform learner of the accepted value
+                l_socket = new Socket(learner_ip, learner_port);
+                // Create input and output streams to read from and write to the server
+                PrintStream l_out = new PrintStream(l_socket.getOutputStream());
+                // BufferedReader l_in = new BufferedReader(new InputStreamReader(l_socket.getInputStream()));
+                l_out.println(acceptor.getAcceptorUID());
+                l_out.println(accepted.proposalID.getNumber());
+                l_out.println(accepted.proposalID.getUID());
+                l_out.println(accepted.proposedValue);
             } else {
                 System.out.println("not accepted");
+            }
+
+            // Close our connection
+            in.close();
+            out.close();
+            socket.close();
+
+            System.out.println("Connection closed");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class LearnerHandler extends Thread {
+    private Socket socket;
+    private Learner learner;
+
+    LearnerHandler(Socket socket, Learner learner) {
+        this.socket = socket;
+        this.learner = learner;
+    }
+
+    @Override
+    public void run() {
+        try {
+            System.out.println("Server received a connection");
+
+            // Get input and output streams
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream());
+
+            String acceptor_uid = in.readLine();
+            int number = Integer.parseInt(in.readLine());
+	        String uid = in.readLine();
+            int acceptedValue = Integer.parseInt(in.readLine());
+
+            ProposalID acceptedProposalID = new ProposalID(number, uid);
+
+            System.out.println("learner: " + number);
+            System.out.println("learner: " + uid);
+            System.out.println("learner: " + acceptedValue);
+
+            AcceptRequest resolution;
+            synchronized(this){
+                resolution = learner.receiveAccepted(acceptor_uid, acceptedProposalID, acceptedValue);
+            }
+
+            if (resolution != null) {
+                System.out.println("resolution: " + resolution.proposalID.getNumber());
+                System.out.println("resolution: " + resolution.proposalID.getUID());
+                System.out.println("resolution: " + resolution.proposedValue);
+            } else {
+                System.out.println("majority not reached");
             }
 
             // Close our connection
