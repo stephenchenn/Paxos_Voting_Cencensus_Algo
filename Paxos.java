@@ -1,9 +1,13 @@
 import java.lang.String;
+import java.net.ServerSocket;
+import java.io.IOException;
 
 public class Paxos {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         // implemeting proposers as clients, acceptors and learners as servers
+
+        // 9 members in the council
 
         // proposer
         String proposerUID = "100";
@@ -28,24 +32,32 @@ public class Paxos {
         // String uid = proposer.getProposerUID();
         // ProposalID id = proposer.getProposalID();
  
+        // int ports[] = new int[9];
+        // try {
+        //     ServerSocket s = new ServerSocket(0);
+        //     for (int i=0; i<9 ; i++){
+        //         ports[i] = s.getLocalPort();
+                
+        //     }
+        //     s.close();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+
         // acceptor 1
         int port = 80;
         Acceptor acceptor = new Acceptor("200");
         SocketServer server = new SocketServer(acceptor, port, l_ip, l_port);
-
         Messenger acceptorMessenger1 = new Messenger(server);
         acceptor.setMessenger(acceptorMessenger1);
-
         acceptor.start();
 
         // acceptor 2
         int port2 = 81;
         Acceptor acceptor2 = new Acceptor("201");
         SocketServer server2 = new SocketServer(acceptor2, port2, l_ip, l_port);
-
         Messenger acceptorMessenger2 = new Messenger(server2);
         acceptor2.setMessenger(acceptorMessenger2);
-
         acceptor2.start();
         
         // acceptor1.getMessenger().startListening(acceptor1, port);

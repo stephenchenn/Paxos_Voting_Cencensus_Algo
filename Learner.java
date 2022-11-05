@@ -38,7 +38,6 @@ public class Learner{
 	}
 
 	public AcceptRequest receiveAccepted(String fromUID, ProposalID proposalID, int acceptedValue) {
-		System.out.println("start here");
 		if (isComplete()){
 			return null;
 		}
@@ -81,9 +80,6 @@ public class Learner{
 			//messenger.onResolution(proposalID, acceptedValue);
 		}
 
-		System.out.println("exit 3");
-		System.out.println(thisProposal.acceptCount);
-		System.out.println("end here");
 		return null;
 	}
 

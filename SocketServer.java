@@ -19,9 +19,10 @@ public class SocketServer extends Thread {
     private int learner_port;
 
     // constructor for an acceptor
-        // passing in acceptor to contact acceptor obj for paxos logic
-        // passing in port to start the server on
-        // passing in learner ip and port to contact learner server once a value has been accepted
+    // passing in acceptor to contact acceptor obj for paxos logic
+    // passing in port to start the server on
+    // passing in learner ip and port to contact learner server once a value has
+    // been accepted
     public SocketServer(Acceptor acceptor, int port, String learner_ip, int learner_port) {
         this.port = port;
         this.acceptor = acceptor;
@@ -60,15 +61,16 @@ public class SocketServer extends Thread {
                 // Call accept() to receive the next connection
                 Socket socket = serverSocket.accept();
 
-                // if learner is not null, this server is for learner so it will be handled by a LearnerHandler
+                // if learner is not null, this server is for learner so it will be handled by a
+                // LearnerHandler
                 // otherwise it is for an acceptor and will be handled by a AcceptorHandler
                 if (learner != null) {
-                    LearnerHandler learnerHandler = new LearnerHandler(socket, learner);
-                    learnerHandler.start();
+                    Runnable r = new MyRunnable(this, socket, 1);
+                    new Thread(r).start();
                 } else {
                     // Pass the socket to the RequestHandler thread for processing
-                    AcceptorHandler acceptorHandler = new AcceptorHandler(socket, acceptor, learner_ip, learner_port);
-                    acceptorHandler.start();
+                    Runnable r = new MyRunnable(this, socket, 0);
+                    new Thread(r).start();
                 }
 
             } catch (IOException e) {
@@ -76,23 +78,32 @@ public class SocketServer extends Thread {
             }
         }
     }
-}
 
-class AcceptorHandler extends Thread {
-    private Socket socket;
-    private Acceptor acceptor;
-    private String learner_ip;
-    private int learner_port;
+    public class MyRunnable implements Runnable {
+        private Socket socket;
+        private SocketServer server;
+        private int type; // indicates what type of request handler to run, 0 for acceptor and 1 for learner
 
-    AcceptorHandler(Socket socket, Acceptor acceptor, String learner_ip, int learner_port) {
-        this.socket = socket;
-        this.acceptor = acceptor;
-        this.learner_ip = learner_ip;
-        this.learner_port = learner_port;
+        public MyRunnable(SocketServer server, Socket socket, int type) {
+            this.socket = socket;
+            this.server = server;
+            this.type = type;
+        }
+
+        public void run() {
+            try {
+                if (type == 0){
+                    server.AcceptorHandler(socket);
+                }else{ // type=1
+                    server.LearnerHandler(socket);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @Override
-    public void run() {
+    public void AcceptorHandler(Socket socket) throws InterruptedException {
         try {
             System.out.println("Server received a connection");
 
@@ -106,17 +117,17 @@ class AcceptorHandler extends Thread {
             ProposalID proposalID = new ProposalID(id, uid);
             Promise promise;
 
-            synchronized(this){
+            synchronized (this) {
                 promise = this.acceptor.receivePrepare(uid, proposalID);
             }
-            
+
             if (promise != null) {
                 String p_acceptorUID = promise.acceptorUID;
                 String p_proposal_number = String.valueOf(promise.proposalID.getNumber());
                 String p_proposal_uid = promise.proposalID.getUID();
                 String p_previous_number = null;
                 String p_previous_uid = null;
-                if (promise.previousID != null){
+                if (promise.previousID != null) {
                     p_previous_number = String.valueOf(promise.previousID.getNumber());
                     p_previous_uid = promise.previousID.getUID();
                 }
@@ -137,19 +148,20 @@ class AcceptorHandler extends Thread {
             String a_proposal_uid = in.readLine();
             ProposalID a_proposalID = new ProposalID(a_proposal_number, a_proposal_uid);
             int a_value = Integer.parseInt(in.readLine());
-            
+
             AcceptRequest accepted;
-            synchronized(this){
+            synchronized (this) {
                 accepted = acceptor.receiveAcceptRequest(a_proposal_uid, a_proposalID, a_value);
             }
 
             Socket l_socket;
-            if (accepted!=null){
+            if (accepted != null) {
                 // create a socket to inform learner of the accepted value
                 l_socket = new Socket(learner_ip, learner_port);
                 // Create input and output streams to read from and write to the server
                 PrintStream l_out = new PrintStream(l_socket.getOutputStream());
-                // BufferedReader l_in = new BufferedReader(new InputStreamReader(l_socket.getInputStream()));
+                // BufferedReader l_in = new BufferedReader(new
+                // InputStreamReader(l_socket.getInputStream()));
                 l_out.println(acceptor.getAcceptorUID());
                 l_out.println(accepted.proposalID.getNumber());
                 l_out.println(accepted.proposalID.getUID());
@@ -168,19 +180,8 @@ class AcceptorHandler extends Thread {
             e.printStackTrace();
         }
     }
-}
 
-class LearnerHandler extends Thread {
-    private Socket socket;
-    private Learner learner;
-
-    LearnerHandler(Socket socket, Learner learner) {
-        this.socket = socket;
-        this.learner = learner;
-    }
-
-    @Override
-    public void run() {
+    public void LearnerHandler(Socket socket) throws InterruptedException {
         try {
             System.out.println("Server received a connection");
 
@@ -190,7 +191,7 @@ class LearnerHandler extends Thread {
 
             String acceptor_uid = in.readLine();
             int number = Integer.parseInt(in.readLine());
-	        String uid = in.readLine();
+            String uid = in.readLine();
             int acceptedValue = Integer.parseInt(in.readLine());
 
             ProposalID acceptedProposalID = new ProposalID(number, uid);
@@ -200,7 +201,7 @@ class LearnerHandler extends Thread {
             System.out.println("learner: " + acceptedValue);
 
             AcceptRequest resolution;
-            synchronized(this){
+            synchronized (this) {
                 resolution = learner.receiveAccepted(acceptor_uid, acceptedProposalID, acceptedValue);
             }
 
