@@ -24,19 +24,19 @@ public class Messenger{
         // System.out.println("messenger: sending prepare: seq: " + proposalID.getNumber() + " uid: " + proposalID.getUID());
     }
 
-	public void sendPromise(String acceptorUID, ProposalID proposalID, ProposalID previousID, int acceptedValue){
-        System.out.println("messenger: sending promise: uid: " + acceptorUID + " seq: " + proposalID.getNumber() + " accepted val: " + acceptedValue);
-    }
+	// public void sendPromise(String acceptorUID, ProposalID proposalID, ProposalID previousID, int acceptedValue){
+    //     System.out.println("messenger: sending promise: uid: " + acceptorUID + " seq: " + proposalID.getNumber() + " accepted val: " + acceptedValue);
+    // }
 
-	public void sendAccept(ProposalID proposalID, int proposalValue){
-        System.out.println("messenger: sending accept: uid: " + proposalID.getUID() + " seq: " + proposalID.getNumber() + " proposal value: " + proposalValue);
-    }
+	// public void sendAccept(ProposalID proposalID, int proposalValue){
+    //     System.out.println("messenger: sending accept: uid: " + proposalID.getUID() + " seq: " + proposalID.getNumber() + " proposal value: " + proposalValue);
+    // }
 
-	public void sendAccepted(ProposalID proposalID, int acceptedValue){
-        System.out.println("messenger: sending accepted");
-    }
+	// public void sendAccepted(ProposalID proposalID, int acceptedValue){
+    //     System.out.println("messenger: sending accepted");
+    // }
 	
-	public void onResolution(ProposalID proposalID, int value){
-        System.out.println("messenger: on resolution");
-    }
+	// public void onResolution(ProposalID proposalID, int value){
+    //     System.out.println("messenger: on resolution");
+    // }
 }

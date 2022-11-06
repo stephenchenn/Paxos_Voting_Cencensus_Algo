@@ -7,6 +7,7 @@ import java.io.PrintStream;
 public class SocketClient {
     // private Socket socket;
     private Proposer proposer;
+    private String proposerName;
 
     public class MyRunnable implements Runnable {
         private SocketClient client;
@@ -32,15 +33,16 @@ public class SocketClient {
         // default constructor
     }
 
-    public SocketClient(Proposer proposer) {
+    public SocketClient(Proposer proposer, String proposerName) {
         this.proposer = proposer;
+        this.proposerName = proposerName;
     }
 
     public void startClient(ProposalID proposalID, String ip, int port) {
         try {
             // Connect to the server
             Socket socket = new Socket(ip, port);
-            System.out.println("Client connected to " + ip + ":" + port);
+            System.out.println(proposerName + " connected to " + ip + ":" + port);
             Runnable r = new MyRunnable(this, proposalID, socket);
             new Thread(r).start();
         } catch (IOException e) {
@@ -59,7 +61,7 @@ public class SocketClient {
             String uid = proposalID.getUID();
 
 
-
+            System.out.println(proposerName + ": sending prepare");
             // SEND PREPARE
             out.println(number);
             out.println(uid);
@@ -70,6 +72,7 @@ public class SocketClient {
 
 
             // RECEIVE PROMISE
+            System.out.println(proposerName + ": received promise");
             String p_acceptorUID = in.readLine();
             int p_proposal_number = Integer.parseInt(in.readLine());
             String p_proposal_uid = in.readLine();
@@ -93,22 +96,23 @@ public class SocketClient {
                 accReq = proposer.receivePromise(p_acceptorUID, p_proposalID, p_prevAcceptedID, p_acceptedValue);
                 if (accReq != null) {
                     // notifies the produce thread that it can wake up.
-                    System.out.println("notifying");
+                    // System.out.println("notifying");
                     notifyAll();
-                    System.out.println("i still go first tho");
+                    // System.out.println("i still go first tho");
                 } else {
                     // releases the lock on shared resource
-                    System.out.println("waiting");
+                    // System.out.println("waiting");
                     wait();
                     accReq = new AcceptRequest(proposer.getProposalID(), proposer.getProposedValue());
-                    System.out.println("back!");
+                    // System.out.println("back!");
                 }
             }
 
             // SEND ACCEPT REQUEST
-            System.out.println(socket.getPort() + " sending accept request: seq " + accReq.proposalID.getNumber());
-            System.out.println(socket.getPort() + " sending accept request: uid " + accReq.proposalID.getUID());
-            System.out.println(socket.getPort() + " sending accept request: val " + accReq.proposedValue);
+            // System.out.println(socket.getPort() + " sending accept request: seq " + accReq.proposalID.getNumber());
+            // System.out.println(socket.getPort() + " sending accept request: uid " + accReq.proposalID.getUID());
+            // System.out.println(socket.getPort() + " sending accept request: val " + accReq.proposedValue);
+            System.out.println(proposerName + ": sending accept request");
             out.println(accReq.proposalID.getNumber());
             out.println(accReq.proposalID.getUID());
             out.println(accReq.proposedValue);

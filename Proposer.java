@@ -53,13 +53,17 @@ public class Proposer {
 		// v’ = v_a with highest n_a; choose own v otherwise
 		// proposedValue = prevAcceptedValue with highest prevAcceptedID; choose own
 		// proposedValue otherwise
-		if (lastAcceptedID == null || prevAcceptedID.isGreaterThan(lastAcceptedID)) {
+		if (lastAcceptedID == null) {
 			lastAcceptedID = prevAcceptedID; // lastAcceptedID stores the highest accepted id returned in the promises
-
-			if (prevAcceptedValue != -1) {
-				proposedValue = prevAcceptedValue;
-			} // if true this means prevAcceptedID.isGreaterThan(lastAcceptedID), so set
-				// proposedValue to preAcceptedValue
+			
+			if (prevAcceptedID != null){
+				if (prevAcceptedID.isGreaterThan(lastAcceptedID)){
+					if (prevAcceptedValue != -1) {
+						proposedValue = prevAcceptedValue;
+					} // if true this means prevAcceptedID.isGreaterThan(lastAcceptedID), so set
+						// proposedValue to preAcceptedValue
+				}
+			}
 		}
 
 		// if receivePromise(fromUID, proposalID, prevAcceptedID, prevAcceptedValue)

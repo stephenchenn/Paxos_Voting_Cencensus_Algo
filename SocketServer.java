@@ -17,30 +17,33 @@ public class SocketServer extends Thread {
     private Learner learner = null;
     private String learner_ip;
     private int learner_port;
+    private String name;
 
     // constructor for an acceptor
     // passing in acceptor to contact acceptor obj for paxos logic
     // passing in port to start the server on
     // passing in learner ip and port to contact learner server once a value has
     // been accepted
-    public SocketServer(Acceptor acceptor, int port, String learner_ip, int learner_port) {
+    public SocketServer(Acceptor acceptor, int port, String learner_ip, int learner_port, String acceptorName) {
         this.port = port;
         this.acceptor = acceptor;
         this.learner_ip = learner_ip;
         this.learner_port = learner_port;
+        this.name = acceptorName;
     }
 
     // constructor for a learner
-    public SocketServer(Learner learner, int port) {
+    public SocketServer(Learner learner, int port, String learnerName) {
         this.port = port;
         this.learner = learner;
+        this.name = learnerName;
     }
 
     public void startServer() {
         try {
             serverSocket = new ServerSocket(port);
             this.start();
-            // System.out.println("Server started on port: " + port);
+            System.out.println(name + " started on port: " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -115,6 +118,7 @@ public class SocketServer extends Thread {
 
 
             // RECEIVE PREPARE
+            System.out.println(name + ": received prepare");
             int id = Integer.parseInt(in.readLine());
             String uid = in.readLine();
             //
@@ -144,14 +148,15 @@ public class SocketServer extends Thread {
 
 
 
-                System.out.println(port + " acceptor uid " + p_acceptorUID);
-                System.out.println(port + " seq " + p_proposal_number);
-                System.out.println(port + " uid " + p_proposal_uid);
-                System.out.println(port + " prev seq " + p_previous_number);
-                System.out.println(port + " prev uid " + p_previous_uid);
-                System.out.println(port + " prev val " + p_acceptedValue);
+                // System.out.println(port + " acceptor uid " + p_acceptorUID);
+                // System.out.println(port + " seq " + p_proposal_number);
+                // System.out.println(port + " uid " + p_proposal_uid);
+                // System.out.println(port + " prev seq " + p_previous_number);
+                // System.out.println(port + " prev uid " + p_previous_uid);
+                // System.out.println(port + " prev val " + p_acceptedValue);
 
                 // SEND PROMISE
+                System.out.println(name + ": sending promise");
                 out.println(p_acceptorUID);
                 out.println(p_proposal_number);
                 out.println(p_proposal_uid);
@@ -163,15 +168,13 @@ public class SocketServer extends Thread {
 
 
 
-
-
             } else {
-                System.out.println("prepare fail");
+                System.out.println(name + ": prepare not accepted");
             }
 
 
-
             // RECEIVE ACCEPT REQUEST
+            System.out.println(name + ": received accept request");
             String num = in.readLine();
             String a_proposal_uid = in.readLine();
             String val = in.readLine();
@@ -180,9 +183,6 @@ public class SocketServer extends Thread {
             ProposalID a_proposalID = new ProposalID(a_proposal_number, a_proposal_uid);
             //
 
-
-
-            
 
             AcceptRequest accepted;
             synchronized (this) {
@@ -197,13 +197,17 @@ public class SocketServer extends Thread {
                 PrintStream l_out = new PrintStream(l_socket.getOutputStream());
                 // BufferedReader l_in = new BufferedReader(new
                 // InputStreamReader(l_socket.getInputStream()));
+
+                System.out.println(name + ": sending accepted");
                 l_out.println(acceptor.getAcceptorUID());
                 l_out.println(accepted.proposalID.getNumber());
                 l_out.println(accepted.proposalID.getUID());
                 l_out.println(accepted.proposedValue);
                 l_out.flush();
+
+
             } else {
-                System.out.println("not accepted");
+                System.out.println(name + ": accept request not accepted");
             }
 
             // Close our connection
@@ -225,6 +229,7 @@ public class SocketServer extends Thread {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream());
 
+            System.out.println(name + ": received accepted");
             String acceptor_uid = in.readLine();
             int number = Integer.parseInt(in.readLine());
             String uid = in.readLine();
@@ -232,9 +237,9 @@ public class SocketServer extends Thread {
 
             ProposalID acceptedProposalID = new ProposalID(number, uid);
 
-            System.out.println("learner: " + number);
-            System.out.println("learner: " + uid);
-            System.out.println("learner: " + acceptedValue);
+            // System.out.println("learner: " + number);
+            // System.out.println("learner: " + uid);
+            // System.out.println("learner: " + acceptedValue);
 
             AcceptRequest resolution;
             synchronized (this) {
@@ -242,11 +247,11 @@ public class SocketServer extends Thread {
             }
 
             if (resolution != null) {
-                System.out.println("resolution: " + resolution.proposalID.getNumber());
-                System.out.println("resolution: " + resolution.proposalID.getUID());
-                System.out.println("resolution: " + resolution.proposedValue);
+                System.out.println("\n" + name + ": RESOLUTION ID: " + resolution.proposalID.getNumber() + "\n");
+                System.out.println("\n" + name + ": RESOLUTION UID: " + resolution.proposalID.getUID() + "\n");
+                System.out.println("\n" + name + ": RESOLUTION VALUE:" + resolution.proposedValue + "\n");
             } else {
-                System.out.println("majority not reached");
+                System.out.println(name + ": majority not reached");
             }
 
             // Close our connection
