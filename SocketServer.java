@@ -40,7 +40,7 @@ public class SocketServer extends Thread {
         try {
             serverSocket = new ServerSocket(port);
             this.start();
-            System.out.println("Server started on port: " + port);
+            // System.out.println("Server started on port: " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,7 +56,7 @@ public class SocketServer extends Thread {
         running = true;
         while (running) {
             try {
-                System.out.println("Listening for a connection");
+                // System.out.println("Listening for a connection");
 
                 // Call accept() to receive the next connection
                 Socket socket = serverSocket.accept();
@@ -105,14 +105,23 @@ public class SocketServer extends Thread {
 
     public void AcceptorHandler(Socket socket) throws InterruptedException {
         try {
-            System.out.println("Server received a connection");
+            // System.out.println("Server received a connection");
 
             // Get input and output streams
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream());
 
+
+
+
+            // RECEIVE PREPARE
             int id = Integer.parseInt(in.readLine());
             String uid = in.readLine();
+            //
+
+
+
+
 
             ProposalID proposalID = new ProposalID(id, uid);
             Promise promise;
@@ -133,6 +142,16 @@ public class SocketServer extends Thread {
                 }
                 String p_acceptedValue = String.valueOf(promise.acceptedValue);
 
+
+
+                System.out.println(port + " acceptor uid " + p_acceptorUID);
+                System.out.println(port + " seq " + p_proposal_number);
+                System.out.println(port + " uid " + p_proposal_uid);
+                System.out.println(port + " prev seq " + p_previous_number);
+                System.out.println(port + " prev uid " + p_previous_uid);
+                System.out.println(port + " prev val " + p_acceptedValue);
+
+                // SEND PROMISE
                 out.println(p_acceptorUID);
                 out.println(p_proposal_number);
                 out.println(p_proposal_uid);
@@ -140,14 +159,30 @@ public class SocketServer extends Thread {
                 out.println(p_previous_uid);
                 out.println(p_acceptedValue);
                 out.flush();
+                //
+
+
+
+
+
             } else {
                 System.out.println("prepare fail");
             }
 
-            int a_proposal_number = Integer.parseInt(in.readLine());
+
+
+            // RECEIVE ACCEPT REQUEST
+            String num = in.readLine();
             String a_proposal_uid = in.readLine();
+            String val = in.readLine();
+            int a_value = Integer.parseInt(val);
+            int a_proposal_number = Integer.parseInt(num);
             ProposalID a_proposalID = new ProposalID(a_proposal_number, a_proposal_uid);
-            int a_value = Integer.parseInt(in.readLine());
+            //
+
+
+
+            
 
             AcceptRequest accepted;
             synchronized (this) {
@@ -166,6 +201,7 @@ public class SocketServer extends Thread {
                 l_out.println(accepted.proposalID.getNumber());
                 l_out.println(accepted.proposalID.getUID());
                 l_out.println(accepted.proposedValue);
+                l_out.flush();
             } else {
                 System.out.println("not accepted");
             }
@@ -175,7 +211,7 @@ public class SocketServer extends Thread {
             out.close();
             socket.close();
 
-            System.out.println("Connection closed");
+            // System.out.println("Connection closed");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -183,7 +219,7 @@ public class SocketServer extends Thread {
 
     public void LearnerHandler(Socket socket) throws InterruptedException {
         try {
-            System.out.println("Server received a connection");
+            // System.out.println("Server received a connection");
 
             // Get input and output streams
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -218,7 +254,7 @@ public class SocketServer extends Thread {
             out.close();
             socket.close();
 
-            System.out.println("Connection closed");
+            // System.out.println("Connection closed");
         } catch (Exception e) {
             e.printStackTrace();
         }

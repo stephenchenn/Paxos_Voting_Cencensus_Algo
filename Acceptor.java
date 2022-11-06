@@ -21,15 +21,16 @@ public class Acceptor {
 	// acceptor’s prepare(n) handler:
 	public Promise receivePrepare(String fromUID, ProposalID proposalID) {
 
-		System.out.println("receive prepare");
+		// System.out.println("receive prepare");
 
+		Promise promise = new Promise(acceptorUID, proposalID, acceptedID, acceptedValue);
 		if (this.promisedID != null && proposalID.equals(promisedID)) { // duplicate message
-			messenger.sendPromise(acceptorUID, proposalID, acceptedID, acceptedValue);
+			return promise;
 		} else if (this.promisedID == null || proposalID.isGreaterThan(promisedID)) { // if n > n_p
 			// n_p = n
 			promisedID = proposalID;
 			// reply prepare_ok(n, n_a, v_a)
-			Promise promise = new Promise(acceptorUID, proposalID, acceptedID, acceptedValue);
+			
 			return promise;
 			// messenger.sendPromise(acceptorUID, proposalID, acceptedID, acceptedValue);
 		}
